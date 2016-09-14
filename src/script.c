@@ -169,9 +169,35 @@ void script_response(lua_State *L, int status, buffer *headers, buffer *body) {
     lua_pushinteger(L, status);
     lua_newtable(L);
 
+    int i = 0;
+
     for (char *c = headers->buffer; c < headers->cursor; ) {
+        bool isDuplicate = false;
+        if (strcmp(c, "set-cookie") == 0) {
+          char *end = strchr(c, 0);
+
+          char str[16];
+          char i_string[4];
+          strcpy(str, "set-cookie-");
+          sprintf(i_string, "%d", i);
+          strcat(str, i_string);
+
+          c = str;
+
+          c = buffer_pushlstring(L, c);
+          c = end + 1;
+
+          isDuplicate = true;
+
+          i++;
+        }
+
+        if (!isDuplicate) {
+          c = buffer_pushlstring(L, c);
+        }
+
         c = buffer_pushlstring(L, c);
-        c = buffer_pushlstring(L, c);
+
         lua_rawset(L, -3);
     }
 
